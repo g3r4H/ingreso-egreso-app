@@ -1,5 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { FirebaseError } from '@angular/fire/app';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { SwalComponent } from '@sweetalert2/ngx-sweetalert2';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-register',
@@ -7,9 +11,16 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
   styles: [],
 })
 export class RegisterComponent implements OnInit {
+  @ViewChild('errorSwal')
+  public readonly errorSwal!: SwalComponent;
+
   registroForm: FormGroup;
 
-  constructor(private fb: FormBuilder) {
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router
+  ) {
     this.registroForm = this.fb.group({
       nombre: ['', Validators.required],
       correo: ['', [Validators.required, Validators.email]],
@@ -20,8 +31,20 @@ export class RegisterComponent implements OnInit {
   ngOnInit(): void {}
 
   crearUsuario() {
-    console.log(this.registroForm);
-    console.log(this.registroForm.valid);
-    console.log(this.registroForm.value);
+    if (this.registroForm.invalid) {
+      return;
+    }
+    const { nombre, correo, password } = this.registroForm.value;
+    this.authService
+      .createUser(nombre, correo, password)
+      .then((credentials) => {
+        console.log(credentials);
+        this.router.navigate(['/']);
+      })
+      .catch((error: FirebaseError) => {
+        console.error('CATCH', error.message);
+        this.errorSwal.update({ text: error.message });
+        this.errorSwal.fire();
+      });
   }
 }

@@ -9,6 +9,8 @@ import { provideAuth, getAuth } from '@angular/fire/auth';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { environment } from '../environments/environment';
 
+import { SweetAlert2Module } from '@sweetalert2/ngx-sweetalert2';
+
 import { AppComponent } from './app.component';
 import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
@@ -37,6 +39,7 @@ import { SidebarComponent } from './shared/sidebar/sidebar.component';
     BrowserModule,
     AppRoutingModule,
     ReactiveFormsModule,
+    SweetAlert2Module.forRoot(),
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
