@@ -1,6 +1,8 @@
 import { Component, inject, OnDestroy } from '@angular/core';
 import { Auth, authState, User } from '@angular/fire/auth';
 import { Subscription } from 'rxjs';
+import { AuthService } from './services/auth.service';
+import { User as MyUser } from '../app/models/user.model';
 
 @Component({
   selector: 'app-root',
@@ -12,11 +14,18 @@ export class AppComponent implements OnDestroy {
   authState$ = authState(this.auth);
   authStateSubscription: Subscription;
 
-  constructor() {
+  constructor(private authService: AuthService) {
     this.authStateSubscription = this.authState$.subscribe(
-      (aUser: User | null) => {
+      (fbUser: User | null) => {
         //handle auth state changes here. Note, that user will be null if there is no currently logged in user.
-        console.log('authState', aUser);
+        console.log('authState', fbUser);
+
+        if (fbUser) {
+          authService.setUser(fbUser.uid);
+        } else {
+          console.log('Call User unset');
+          authService.unsetUser();
+        }
       }
     );
   }

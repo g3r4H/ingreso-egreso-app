@@ -64,10 +64,19 @@
 
             <div class="form-group">
               <button
+                *ngIf="!loading"
                 [disabled]="registroForm.invalid"
                 class="btn btn-primary submit-btn btn-block"
               >
                 Crear cuenta
+              </button>
+              <button
+                *ngIf="loading"
+                [disabled]="true"
+                class="btn btn-primary submit-btn btn-block"
+              >
+                <i class="fa fa-spin fa-sync"></i>
+                ... Wait
               </button>
             </div>
             <div class="text-block text-center my-3">
