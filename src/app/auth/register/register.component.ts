@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnDestroy, ViewChild, inject } from '@angular/core';
 import { FirebaseError } from '@angular/fire/app';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -18,29 +18,28 @@ export class RegisterComponent implements OnDestroy {
   @ViewChild('errorSwal')
   public readonly errorSwal!: SwalComponent;
 
-  registroForm: FormGroup;
+  #fb = inject(FormBuilder);
+  #authService = inject(AuthService);
+  #router = inject(Router);
+  #store = inject(Store<AppState>);
+
+  registroForm = this.#fb.group({
+    nombre: ['', Validators.required],
+    correo: ['', [Validators.required, Validators.email]],
+    password: ['', Validators.required],
+  });
+
   loading = false;
-  uiSubscription: Subscription;
+  uiSubs: Subscription;
 
-  constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private router: Router,
-    private store: Store<AppState>
-  ) {
-    this.registroForm = this.fb.group({
-      nombre: ['', Validators.required],
-      correo: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required],
-    });
-
-    this.uiSubscription = this.store.select('ui').subscribe((ui) => {
+  constructor() {
+    this.uiSubs = this.#store.select('ui').subscribe((ui) => {
       this.loading = ui.isLoading;
     });
   }
 
   ngOnDestroy(): void {
-    this.uiSubscription.unsubscribe();
+    this.uiSubs.unsubscribe();
   }
 
   crearUsuario() {
@@ -48,14 +47,13 @@ export class RegisterComponent implements OnDestroy {
       return;
     }
 
-    this.store.dispatch(uiActions.isLoading());
+    this.#store.dispatch(uiActions.isLoading());
 
     const { nombre, correo, password } = this.registroForm.value;
-    this.authService
-      .createUser(nombre, correo, password)
-      .then((credentials) => {
-        console.log(credentials);
-        this.router.navigate(['/']);
+    this.#authService
+      .createFirebaseUser(nombre!, correo!, password!)
+      .then(() => {
+        this.#router.navigate(['/']);
       })
       .catch((error: FirebaseError) => {
         console.error('CATCH', error.message);
@@ -63,7 +61,7 @@ export class RegisterComponent implements OnDestroy {
         this.errorSwal.fire();
       })
       .finally(() => {
-        this.store.dispatch(uiActions.stopLoading());
+        this.#store.dispatch(uiActions.stopLoading());
       });
   }
 }

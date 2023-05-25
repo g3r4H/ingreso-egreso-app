@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnDestroy, ViewChild, inject } from '@angular/core';
 import { FirebaseError } from '@angular/fire/app';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -18,29 +18,29 @@ export class LoginComponent implements OnDestroy {
   @ViewChild('errorSwal')
   public readonly errorSwal!: SwalComponent;
 
+  #fb = inject(FormBuilder);
+  #authService = inject(AuthService);
+  #router = inject(Router);
+  #store = inject(Store<AppState>);
+
   loginForm: FormGroup;
   loginErrorMessage = '';
   loading = false;
-  uiSubscription: Subscription;
+  uiSubs: Subscription;
 
-  constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private router: Router,
-    private store: Store<AppState>
-  ) {
-    this.loginForm = this.fb.group({
+  constructor() {
+    this.loginForm = this.#fb.group({
       correo: ['gera@email.com', [Validators.required, Validators.email]],
       password: ['qwerty', Validators.required],
     });
 
-    this.uiSubscription = this.store.select('ui').subscribe((ui) => {
+    this.uiSubs = this.#store.select('ui').subscribe((ui) => {
       this.loading = ui.isLoading;
     });
   }
 
   ngOnDestroy(): void {
-    this.uiSubscription.unsubscribe();
+    this.uiSubs.unsubscribe();
   }
 
   loginUser() {
@@ -48,15 +48,15 @@ export class LoginComponent implements OnDestroy {
       return;
     }
 
-    this.store.dispatch(uiActions.isLoading());
+    this.#store.dispatch(uiActions.isLoading());
 
     const { correo, password } = this.loginForm.value;
 
-    this.authService
+    this.#authService
       .loginUser(correo, password)
       .then((credentials) => {
         console.log('SUCCESS', credentials);
-        this.router.navigate(['/']);
+        this.#router.navigate(['/']);
       })
       .catch((error: FirebaseError) => {
         console.error('CATCH', error.message);
@@ -64,7 +64,7 @@ export class LoginComponent implements OnDestroy {
         this.errorSwal.fire();
       })
       .finally(() => {
-        this.store.dispatch(uiActions.stopLoading());
+        this.#store.dispatch(uiActions.stopLoading());
       });
   }
 }

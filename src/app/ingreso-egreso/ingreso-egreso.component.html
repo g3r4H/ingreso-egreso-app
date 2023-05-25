@@ -5,11 +5,12 @@
         <h4 class="card-title">Agregar Ingreso / Egreso</h4>
         <p class="card-description">Especifique el monto y el tipo</p>
 
-        <form>
+        <form [formGroup]="ingresoForm" (ngSubmit)="save()">
           <div class="form-group">
             <label>Descripción</label>
             <input
               type="text"
+              formControlName="description"
               class="form-control"
               placeholder="Descripción"
               name="descripcion"
@@ -20,6 +21,7 @@
             <label>Monto</label>
             <input
               type="number"
+              formControlName="amount"
               class="form-control"
               placeholder="Monto"
               name="monto"
@@ -30,15 +32,32 @@
           <div class="form-group">
             <label>Tipo</label>
             <br />
-            <button type="button" class="btn btn-primary btn-block">
+            <button
+              *ngIf="type === 'Ingreso'"
+              (click)="type = 'Egreso'"
+              type="button"
+              class="btn btn-primary btn-block"
+            >
               Ingreso
             </button>
-            <!-- <button type="button" class="btn btn-warning btn-block">Egreso</button> -->
+            <button
+              *ngIf="type === 'Egreso'"
+              (click)="type = 'Ingreso'"
+              type="button"
+              class="btn btn-warning btn-block"
+            >
+              Egreso
+            </button>
           </div>
 
           <hr />
-          <button type="button" class="btn btn-success mr-2">
-            <i class="fa fa-save"></i>
+          <button
+            [disabled]="ingresoForm.invalid || isAdding"
+            type="submit"
+            class="btn btn-success mr-2"
+          >
+            <i *ngIf="!isAdding" class="fa fa-save"></i>
+            <i *ngIf="isAdding" class="fa fa-spin fa-sync"></i>
             Agregar
           </button>
 
